@@ -25,9 +25,12 @@
 #import "CBLJSON.h"
 #import "CBLMutableFragment.h"
 #import "CBLDocument+Internal.h"
+#import "CBLStatus.h"
 
 using namespace cbl;
 
+@interface CBLNewDictionary() <FLEncodable>
+@end
 
 @implementation CBLNewDictionary
 {
@@ -346,5 +349,18 @@ using namespace cbl;
     return self;
 }
 
+
+#pragma mark - FLEncodable
+
+
+- (FLSliceResult) encode: (NSError**)outError {
+    FLEncoder enc = FLEncoder_New();
+    [self fl_encodeToFLEncoder: enc];
+    
+    FLError flErr;
+    FLSliceResult body = FLEncoder_Finish(enc, &flErr);
+    if (!body.buf) convertError(flErr, outError);
+    return body;
+}
 
 @end

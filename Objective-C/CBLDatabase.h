@@ -22,6 +22,7 @@
 @class CBLDocument, CBLMutableDocument, CBLDocumentFragment;
 @class CBLDatabaseChange, CBLDocumentChange;
 @class CBLIndex;
+@class CBLPrediction;
 @protocol CBLConflictResolver;
 @protocol CBLListenerToken;
 

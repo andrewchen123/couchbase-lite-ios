@@ -18,6 +18,9 @@
 //
 
 #import <Foundation/Foundation.h>
+@class CBLBlob;
+@class CBLDictionary;
+@class CBLArray;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -103,6 +106,13 @@ NS_ASSUME_NONNULL_BEGIN
  @pram name The parameter name.
  */
 - (void) setDate: (nullable NSDate*)value forName: (NSString*)name;
+
+- (void) setBlob: (nullable CBLBlob*)value forName: (NSString*)name;
+
+- (void) setDictionary: (nullable CBLDictionary*)value forName: (NSString*)name;
+
+- (void) setArray: (nullable CBLArray*)value forName: (NSString*)name;
+
 
 /**
  Get the parameter value.

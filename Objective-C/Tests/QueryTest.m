@@ -26,40 +26,11 @@
 #import "CBLQueryDataSource.h"
 #import "CBLQueryOrdering.h"
 
-#define kDOCID      [CBLQuerySelectResult expression: [CBLQueryMeta id]]
-#define kSEQUENCE   [CBLQuerySelectResult expression: [CBLQueryMeta sequence]]
-
 @interface QueryTest : CBLTestCase
 
 @end
 
 @implementation QueryTest
-
-
-- (uint64_t) verifyQuery: (CBLQuery*)q
-            randomAccess: (BOOL)randomAccess
-                    test: (void (^)(uint64_t n, CBLQueryResult *result))block {
-    NSError* error;
-    CBLQueryResultSet* rs = [q execute: &error];
-    Assert(rs, @"Query failed: %@", error);
-    uint64_t n = 0;
-    for (CBLQueryResult *r in rs) {
-        block(++n, r);
-    }
-    
-    rs = [q execute: &error];
-    Assert(rs, @"Query failed: %@", error);
-    NSArray* all = rs.allObjects;
-    AssertEqual(all.count, n);
-    if (randomAccess && n > 0) {
-        // Note: the block's 1st parameter is 1-based, while NSArray is 0-based
-        block(n,       all[(NSUInteger)(n-1)]);
-        block(1,       all[0]);
-        block(n/2 + 1, all[(NSUInteger)(n/2)]);
-    }
-    return n;
-}
-
 
 - (CBLMutableDocument*) createDocNumbered: (NSInteger)i of: (NSInteger)num {
     NSString* docID = [NSString stringWithFormat: @"doc%ld", (long)i];
@@ -87,7 +58,7 @@
 
 - (void) runTestWithNumbers: (NSArray*)numbers cases: (NSArray*)cases {
     for (NSArray* c in cases) {
-        CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+        CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                          from: [CBLQueryDataSource database: self.db]
                                         where: c[0]];
         NSPredicate* p = [NSPredicate predicateWithFormat: c[1]];
@@ -110,7 +81,7 @@
 - (void) testNoWhereQuery {
     [self loadJSONResource: @"names_100"];
     
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID, kSEQUENCE]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID, kMETA_SEQ]
                                      from: [CBLQueryDataSource database: self.db]];
     Assert(q);
     uint64_t numRows = [self verifyQuery: q randomAccess: YES
@@ -209,7 +180,7 @@
     for (NSArray* test in tests) {
         CBLQueryExpression* exp = test[0];
         NSArray* expectedDocs = test[1];
-        CBLQuery *q = [CBLQueryBuilder select: @[kDOCID]
+        CBLQuery *q = [CBLQueryBuilder select: @[kMETA_ID]
                                          from: [CBLQueryDataSource database: self.db]
                                         where: exp];
         uint64_t numRows = [self verifyQuery: q randomAccess: YES
@@ -232,7 +203,7 @@
     [doc1 setValue: @"string" forKey: @"string"];
     Assert([_db saveDocument: doc1 error: &error], @"Error when creating a document: %@", error);
     
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]
                                     where: [[CBLQueryExpression property: @"string"] is: [CBLQueryExpression string: @"string"]]];
     
@@ -246,7 +217,7 @@
                         }];
     AssertEqual(numRows, 1u);
     
-    q = [CBLQueryBuilder select: @[kDOCID]
+    q = [CBLQueryBuilder select: @[kMETA_ID]
                            from: [CBLQueryDataSource database: self.db]
                           where: [[CBLQueryExpression property: @"string"] isNot: [CBLQueryExpression string: @"string1"]]];
     
@@ -281,7 +252,7 @@
                        [CBLQueryExpression string: @"Marlen"],
                        [CBLQueryExpression string: @"Maryjo"]];
     CBLQueryExpression* firstName = [CBLQueryExpression property: @"name.first"];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]
                                     where: [firstName in: names]
                                   orderBy: @[[CBLQuerySortOrder property: @"name.first"]]];
@@ -300,7 +271,7 @@
     [self loadJSONResource: @"names_100"];
     
     CBLQueryExpression* where = [[CBLQueryExpression property: @"name.first"] like: [CBLQueryExpression string: @"%Mar%"]];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]
                                     where: where
                                   orderBy: @[[[CBLQueryOrdering property: @"name.first"] ascending]]];
@@ -322,7 +293,7 @@
     [self loadJSONResource: @"names_100"];
     
     CBLQueryExpression* where = [[CBLQueryExpression property: @"name.first"] regex: [CBLQueryExpression string: @"^Mar.*"]];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]
                                     where: where
                                   orderBy: @[[[CBLQueryOrdering property: @"name.first"] ascending]]];
@@ -356,7 +327,7 @@
     CBLQueryExpression* where = [SENTENCE match: @"'Dummie woman'"];
     CBLQueryOrdering* order = [[CBLQueryOrdering expression: [CBLQueryFullTextFunction rank: @"sentence"]]
                                descending];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID, S_SENTENCE]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID, S_SENTENCE]
                                      from: [CBLQueryDataSource database: self.db]
                                     where: where
                                   orderBy: @[order]];
@@ -382,7 +353,7 @@
         else
             order = [[CBLQueryOrdering property: @"name.first"] descending];
         
-        CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+        CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                          from: [CBLQueryDataSource database: self.db]
                                         where: nil
                                       orderBy: @[order]];
@@ -1429,7 +1400,7 @@
     
     __block int count = 0;
     XCTestExpectation* x = [self expectationWithDescription: @"changes"];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]
                                     where: [[CBLQueryExpression property: @"number1"] lessThan: [CBLQueryExpression integer: 10]]
                                   orderBy: @[[CBLQueryOrdering property: @"number1"]]];
@@ -1505,7 +1476,7 @@
 - (void) testCloseDatabaseWithActiveLiveQuery {
     // Add a live query to the DB:
     XCTestExpectation* x = [self expectationWithDescription: @"changes"];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]];
     id token = [q addChangeListener: ^(CBLQueryChange* change) {
         [x fulfill];
@@ -1536,7 +1507,7 @@
 - (void) testDeleteDatabaseWithActiveLiveQuery {
     // Add a live query to the DB:
     XCTestExpectation* x = [self expectationWithDescription: @"changes"];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]];
     id token = [q addChangeListener: ^(CBLQueryChange* change) {
         [x fulfill];
@@ -1563,7 +1534,7 @@
 
 - (void) testResultSetEnumeration {
     [self loadNumbers: 5];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]
                                     where: nil
                                   orderBy: @[[CBLQueryOrdering property: @"number1"]]];
@@ -1603,7 +1574,7 @@
 
 - (void) testGetAllResults {
     [self loadNumbers: 5];
-    CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+    CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                      from: [CBLQueryDataSource database: self.db]
                                     where: nil
                                   orderBy: @[[CBLQueryOrdering property: @"number1"]]];
@@ -1736,7 +1707,7 @@
 
     NSData* json;
     {
-        CBLQuery* q = [CBLQueryBuilder select: @[kDOCID]
+        CBLQuery* q = [CBLQueryBuilder select: @[kMETA_ID]
                                          from: [CBLQueryDataSource database: self.db]
                                         where: [[CBLQueryExpression property: @"string"] is: [CBLQueryExpression string: @"string"]]];
         json = q.JSONRepresentation;

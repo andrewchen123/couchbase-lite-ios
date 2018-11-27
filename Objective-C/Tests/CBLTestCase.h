@@ -31,6 +31,17 @@
 #define Log                NSLog
 #define Warn(FMT, ...)     NSLog(@"WARNING: " FMT, ##__VA_ARGS__)
 
+// Query:
+#define EXPR_PROP(P)            [CBLQueryExpression property: (P)]
+#define EXPR_VAL(V)             [CBLQueryExpression value: (V)]
+#define EXPR_STR(STR)           [CBLQueryExpression string: (STR)]
+#define SEL_EXPR(EXPR)          [CBLQuerySelectResult expression: (EXPR)]
+#define SEL_EXPR_AS(EXPR, AS)   [CBLQuerySelectResult expression: (EXPR) as: (AS)]
+#define SEL_PROP(P)             [CBLQuerySelectResult property: (P)]
+#define kMETA_ID                [CBLQuerySelectResult expression: [CBLQueryMeta id]]
+#define kMETA_SEQ               [CBLQuerySelectResult expression: [CBLQueryMeta sequence]]
+#define kDATA_SRC_DB            [CBLQueryDataSource database: self.db]
+
 extern atomic_int gC4ExpectExceptions;
 
 NS_ASSUME_NONNULL_BEGIN
@@ -101,6 +112,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void) expectException: (NSString*)name in: (void (^) (void))block;
 
 - (void) mayHaveException: (NSString*)name in: (void (^) (void))block;
+
+- (uint64_t) verifyQuery: (CBLQuery*)query
+            randomAccess: (BOOL)randomAccess
+                    test: (void (^)(uint64_t n, CBLQueryResult *result))block;
 
 @end
 

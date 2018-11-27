@@ -88,12 +88,15 @@ framework module CouchbaseLiteSwift {
         header "CBLDatabaseConfiguration+Encryption.h"
         header "CBLDatabaseEndpoint.h"
         header "CBLDatabase+Encryption.h"
+        header "CBLDatabase+Prediction.h"
         header "CBLEncryptionKey.h"
+        header "CBLQueryPredictiveFunction.h"
         header "CBLMessage.h"
         header "CBLMessageEndpoint.h"
         header "CBLMessageEndpointConnection.h"
         header "CBLMessageEndpointListener.h"
         header "CBLMessagingError.h"
+        header "CBLPrediction.h"
         header "CBLProtocolType.h"
     }
 }

@@ -79,3 +79,5 @@ _kCBLAllPropertiesName
 .objc_class_name_CBLMessageEndpointListener
 .objc_class_name_CBLMessageEndpointListenerConfiguration
 .objc_class_name_CBLMessagingError
+.objc_class_name_CBLPrediction
+.objc_class_name_CBLQueryPredictionFunction
